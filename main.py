@@ -6,7 +6,7 @@ import requests
 import time
 import logging
 import constants as c
-from threading import Thread
+from classes import StoppableThread
 from Queue import Queue
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -16,11 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 def start(bot, update):
-    update.message.reply_text('Властелин здесь!')
+    if c.start_msg:
+        update.message.reply_text(c.start_msg)
 
 
-def delete_thread_func():
-    while True:
+def delete_thread_func(stopped):
+    while not stopped():
         msg = delete_queue.get()
         print 'deleting sticker:', msg['msg_id']
         if msg is None:
@@ -29,19 +30,14 @@ def delete_thread_func():
                                                                                           msg['chat_id'],
                                                                                           msg['msg_id'])
         r = requests.post(addr)
-        sleep_time = 0.5
-        while r.status_code != 200:
+        sleep_time = c.min_sleep_time
+        while r.status_code != requests.codes.ok:
             print 'fail:', msg['msg_id'], r.status_code
             r = requests.post(addr)
             time.sleep(sleep_time)
-            if sleep_time<=5:
-                sleep_time *= 2
+            if sleep_time <= c.max_sleep_time:
+                sleep_time *= c.sleep_multiplier
         print 'success:', msg['msg_id']
-
-
-delete_queue = Queue()
-delete_thread = Thread(target=delete_thread_func)
-delete_thread.start()
 
 
 def sticker(bot, update):
@@ -105,11 +101,10 @@ def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"' % (update, error))
 
 
-def error_callback(bot, update, error):
-    print('telegramerror')
-
-
 def main():
+    delete_thread = StoppableThread(target=delete_thread_func)
+    delete_thread.start()
+
     updater = Updater(c.token)
 
     dp = updater.dispatcher
@@ -117,7 +112,6 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(MessageHandler(Filters.sticker, sticker))
     dp.add_handler(MessageHandler(Filters.text, text))
-    dp.add_error_handler(error_callback)
 
     dp.add_error_handler(error)
 
@@ -128,4 +122,5 @@ def main():
 
 
 if __name__ == '__main__':
+    delete_queue = Queue()
     main()
