@@ -21,6 +21,11 @@ def start(bot, update):
         update.message.reply_text(c.start_msg)
 
 
+def source(bot, update):
+    if c.source_msg:
+        update.message.reply_text(c.source_msg)
+
+
 def delete_thread_func(stopped):
     while not stopped():
         try:
@@ -112,6 +117,7 @@ def main():
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("source", source))
     dp.add_handler(MessageHandler(Filters.sticker, sticker))
     dp.add_handler(MessageHandler(Filters.text, text))
 

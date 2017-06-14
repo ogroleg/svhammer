@@ -9,6 +9,7 @@ allowed_stickers = sn_stickers + some2_stickers
 default_probability = 0.01  # value hidden
 del_symbols = '`~1234567890!@#'  # symbols to ignore
 start_msg = 'я тут!'
+source_msg = ''
 min_sleep_time = 0.5
 max_sleep_time = 5
 sleep_multiplier = 2
