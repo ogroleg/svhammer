@@ -45,20 +45,12 @@ delete_thread.start()
 
 
 def sticker(bot, update):
-    # print(dir(update.message.sticker),update.message.sticker.to_json())
-    # print(update.message.sticker.file_id)
     if update.message.chat.type == 'private':
         print(update.message.sticker.file_id)
     else:
         if update.message.sticker.file_id not in c.allowed_stickers:
             print(update.message.message_id)
             delete_queue.put({'chat_id': update.message.chat.id, 'msg_id': update.message.message_id})
-            #bot.delete_message(chat_id=update.message.chat.id, message_id=update.message.message_id)
-            #print('deleted:', update.message.message_id)
-            # print dir(update.message.from_user)
-            # bot.send_message(chat_id=update.message.chat.id,
-            #                 text=('%s, Ви не піддаєтесь людським уявленням про людей.'
-            #                       % update.message.from_user.name))
         else:
             sticker = update.message.sticker.file_id
             r = random.random()
@@ -118,10 +110,8 @@ def error_callback(bot, update, error):
 
 
 def main():
-    # Create the EventHandler and pass it your bot's token.
     updater = Updater(c.token)
 
-    # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", start))
@@ -129,15 +119,10 @@ def main():
     dp.add_handler(MessageHandler(Filters.text, text))
     dp.add_error_handler(error_callback)
 
-    # log all errors
     dp.add_error_handler(error)
 
-    # Start the Bot
     updater.start_polling()
 
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
     delete_queue.put(None)
 
