@@ -1,13 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from classes import StoppableThread
 import random
 import requests
+import Queue
 import time
 import logging
 import constants as c
-from classes import StoppableThread
-from Queue import Queue
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -22,10 +23,11 @@ def start(bot, update):
 
 def delete_thread_func(stopped):
     while not stopped():
-        msg = delete_queue.get()
+        try:
+            msg = delete_queue.get(False, 1)
+        except Queue.Empty:
+            continue
         print 'deleting sticker:', msg['msg_id']
-        if msg is None:
-            break
         addr = 'https://api.telegram.org/bot%s/deleteMessage?chat_id=%s&message_id=%s' % (c.token,
                                                                                           msg['chat_id'],
                                                                                           msg['msg_id'])
@@ -118,9 +120,9 @@ def main():
     updater.start_polling()
 
     updater.idle()
-    delete_queue.put(None)
+    delete_thread.stop()
 
 
 if __name__ == '__main__':
-    delete_queue = Queue()
+    delete_queue = Queue.Queue()
     main()
