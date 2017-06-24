@@ -48,6 +48,8 @@ def delete_thread_func(stopped):
 
 
 def sticker(bot, update):
+    global last_sender_id, last_sender_stickers_in_row
+
     if update.message.chat.type == 'private':
         print(update.message.sticker.file_id)
     else:
@@ -55,6 +57,15 @@ def sticker(bot, update):
             print(update.message.message_id)
             delete_queue.put({'chat_id': update.message.chat.id, 'msg_id': update.message.message_id})
         else:
+            sender_id = update.message.from_user.id
+            if sender_id != last_sender_id:
+                last_sender_id = sender_id
+                last_sender_stickers_in_row = 1
+            else:
+                last_sender_stickers_in_row += 1
+            if last_sender_stickers_in_row > c.max_allowed_stickers_in_row:
+                delete_queue.put({'chat_id': update.message.chat.id, 'msg_id': update.message.message_id})
+                return
             sticker = update.message.sticker.file_id
             r = random.random()
             res = None
@@ -131,4 +142,6 @@ def main():
 
 if __name__ == '__main__':
     delete_queue = Queue.Queue()
+    last_sender_id = None
+    last_sender_stickers_in_row = 0
     main()
