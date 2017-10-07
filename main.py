@@ -26,6 +26,10 @@ def source(bot, update):
         update.message.reply_text(c.source_msg)
 
 
+def is_forwarded(message):
+    return message.forward_from or message.forward_from_chat
+
+
 def delete_thread_func(stopped):
     while not stopped():
         try:
@@ -49,6 +53,9 @@ def delete_thread_func(stopped):
 
 def sticker(bot, update):
     global last_sender_id, last_sender_stickers_in_row
+
+    if is_forwarded(update.message):
+        return
 
     if update.message.chat.type == 'private':
         print(update.message.sticker.file_id)
@@ -84,6 +91,9 @@ def sticker(bot, update):
 
 
 def text(bot, update):
+    if is_forwarded(update.message):
+        return
+
     if update.message.chat.type == 'private':
         return
     else:
