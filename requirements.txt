@@ -1,1 +1,4 @@
+-e git://github.com/ogroleg/aiotg.git#egg=aiotg
 aiotg
+
+motor
